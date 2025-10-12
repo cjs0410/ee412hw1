@@ -49,7 +49,7 @@ import time
 # sc.stop()
 
 
-def paring1(pair):
+def paring(pair):
     key, values = pair
     result = []
     # for v1 in values:
@@ -111,7 +111,8 @@ def quadruplet(pair):
         for v2 in values:
             if v1 != v2:
                 new_key = sorted([key[0], key[1], v1, v2])
-                new_key = tuple(new_key)
+                # new_key = tuple(new_key)
+                new_key = "\t".join(new_key)
                 result.append((new_key, 1))
     return result
 
@@ -121,25 +122,32 @@ sc = SparkContext(conf=conf)
 lines = sc.textFile(sys.argv[1])
 # pairs = lines.map(lambda l: (int(l.split("\t")[0]), [int(e) for e in l.split("\t")[1].split(",")]))
 
-pairs = lines.map(lambda l: (int(l.split("\t")[0]), l.split("\t")[1].split(",")))
-pairs = pairs.map(lambda p: (p[0], [int(e) for e in p[1] if e!='']))
+# pairs = lines.map(lambda l: (int(l.split("\t")[0]), l.split("\t")[1].split(",")))
+# pairs = pairs.map(lambda p: (p[0], [int(e) for e in p[1] if e!='']))
+pairs = lines.map(lambda l: (l.split("\t")[0], l.split("\t")[1].split(",")))
 
-pairs = pairs.flatMap(paring1).groupByKey()
-
-# pairs = pairs.map(lambda c: (c[0], len(c[1])))
-# pairs_print = pairs.collect()
-# print(pairs_print)
+# pairs = pairs.flatMap(paring).groupByKey()
+pairs = pairs.flatMap(paring)
 
 
-# pairs = pairs.flatMap(paring1).groupByKey()
 triplets = pairs.flatMap(triplet).reduceByKey(lambda n1, n2: n1 + n2)
 triplets = triplets.filter(lambda c: c[1] != 3)
-triplets = triplets.flatMap(re_paring).groupByKey()
+head = triplets.take(10)
+print("=== Top 10 ===")
+for x in head:
+    print(x)
+# triplets = triplets.flatMap(re_paring).groupByKey()
 
-quadruplets = triplets.flatMap(quadruplet).reduceByKey(lambda n1, n2: n1 + n2)
-quadruplets = quadruplets.filter(lambda c: c[1] == 12)
-quadruplets = quadruplets.collect()
-print(quadruplets)
+# quadruplets = triplets.flatMap(quadruplet).reduceByKey(lambda n1, n2: n1 + n2)
+# quadruplets = quadruplets.filter(lambda c: c[1] == 12)
+# # quadruplets = quadruplets.collect()
+# # print(quadruplets)
+
+# head = quadruplets.take(10)
+# print("=== Top 10 ===")
+# for x in head:
+#     print(x)
+
 end = time.time()
 print(f"{end - start:.5f} sec")
 sc.stop()
