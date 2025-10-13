@@ -79,22 +79,40 @@ def paring(pair):
 #                 result.append(((values[i], values[j]), key))
 #     return result
 
+# def triplet(pair):
+#     key, values = pair
+#     result = []
+#     for v in values:
+#         new_key = sorted([key[0], key[1], v])
+#         new_key = tuple(new_key)
+#         result.append((new_key, 1))
+#     return result
+
 def triplet(pair):
     key, values = pair
     result = []
-    for v in values:
-        new_key = sorted([key[0], key[1], v])
-        new_key = tuple(new_key)
-        result.append((new_key, 1))
+    for i in range(len(values)):
+        for j in range(i+1, len(values)):
+            new_key = sorted([key, values[i], values[j]])
+            new_key = tuple(new_key)
+            result.append((new_key, key))
     return result
 
+# def re_paring(pair):
+#     key, _ = pair
+#     result = []
+#     k1, k2, k3 = key
+#     result.append(((k1, k2), k3))
+#     result.append(((k1, k3), k2))
+#     result.append(((k2, k3), k1))
+#     return result
+
 def re_paring(pair):
-    key, _ = pair
+    triplet, mids = pair
     result = []
-    k1, k2, k3 = key
-    result.append(((k1, k2), k3))
-    result.append(((k1, k3), k2))
-    result.append(((k2, k3), k1))
+    for mid in mids:
+        new_key = tuple([t for t in list(triplet) if t != mid])
+        result.append((new_key, mid)) 
     return result
 
 def quadruplet(pair):
@@ -107,10 +125,10 @@ def quadruplet(pair):
     #             new_key = tuple(new_key)
     #             result.append((new_key, 1))
 
-    for v1 in values:
-        for v2 in values:
-            if v1 != v2:
-                new_key = sorted([key[0], key[1], v1, v2])
+    for i in range(len(values)):
+        for j in range(i+1, len(values)):
+            if i != j:
+                new_key = sorted([key[0], key[1], values[i], values[j]])
                 # new_key = tuple(new_key)
                 new_key = "\t".join(new_key)
                 result.append((new_key, 1))
@@ -127,26 +145,44 @@ lines = sc.textFile(sys.argv[1])
 pairs = lines.map(lambda l: (l.split("\t")[0], l.split("\t")[1].split(",")))
 
 # pairs = pairs.flatMap(paring).groupByKey()
-pairs = pairs.flatMap(paring)
+# pairs = pairs.flatMap(paring)
 
 
-triplets = pairs.flatMap(triplet).reduceByKey(lambda n1, n2: n1 + n2)
-triplets = triplets.filter(lambda c: c[1] != 3)
-head = triplets.take(10)
-print("=== Top 10 ===")
-for x in head:
-    print(x)
+# triplets = pairs.flatMap(triplet).reduceByKey(lambda n1, n2: n1 + n2)
+# triplets = triplets.filter(lambda c: c[1] != 3)
+triplets = pairs.flatMap(triplet).aggregateByKey([], lambda acc, x: acc + [x], lambda acc1, acc2: acc1 + acc2)
+triplets = triplets.filter(lambda t: len(t[1]) != 3)
+
+
+# head = triplets.take(10)
+# print("=== Top 10 ===")
+# for x in head:
+#     print(x)
 # triplets = triplets.flatMap(re_paring).groupByKey()
+triplets = triplets.flatMap(re_paring).aggregateByKey([], lambda acc, x: acc + [x], lambda acc1, acc2: acc1 + acc2)
 
-# quadruplets = triplets.flatMap(quadruplet).reduceByKey(lambda n1, n2: n1 + n2)
-# quadruplets = quadruplets.filter(lambda c: c[1] == 12)
-# # quadruplets = quadruplets.collect()
-# # print(quadruplets)
+# head = triplets.take(10)
+# print("=== Top 10 ===")
+# for x in head:
+#     print(x)
+
+
+quadruplets = triplets.flatMap(quadruplet).reduceByKey(lambda n1, n2: n1 + n2)
+quadruplets = quadruplets.filter(lambda c: c[1] == 2)
+# quadruplets = quadruplets.collect()
+# print(quadruplets)
 
 # head = quadruplets.take(10)
 # print("=== Top 10 ===")
 # for x in head:
 #     print(x)
+
+head = quadruplets.sortByKey().take(10)
+tail = quadruplets.sortByKey(ascending=False).take(10)
+for h in head:
+    print(h[0])
+for t in tail:
+    print(t[0])
 
 end = time.time()
 print(f"{end - start:.5f} sec")
