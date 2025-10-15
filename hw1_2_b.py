@@ -6,6 +6,7 @@ import os
 import time
 import numpy as np
 
+start = time.time()
 item_cnt = dict()
 item_indices = dict()
 item_indices_reverse = dict()
@@ -76,3 +77,6 @@ print(freq_pairs) # number of freq pairs
 print(len(association_rules)) # number of association rules
 for rule, metrics in sorted_list[:10]:
     print(f"Rule: {rule}, Confidence: {metrics['confidence']}, Support: {metrics['support']}")
+
+end = time.time()
+# print(f"{end - start:.5f} sec")

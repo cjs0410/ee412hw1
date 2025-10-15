@@ -71,13 +71,15 @@ quadruplets = quadruplets.filter(lambda c: c[1] == 2)
 
 head = quadruplets.sortByKey().take(10)
 tail = quadruplets.sortByKey(ascending=False).take(10)
-print("first")
+# print("first")
 for h in head:
-    print(h[0])
-print("last")
+    # print(h[0])
+    print("\t".join([str(usr) for usr in h[0]]))
+# print("last")
 for t in tail:
-    print(t[0])
+    # print(t[0])
+    print("\t".join([str(usr) for usr in t[0]]))
 
 end = time.time()
-print(f"{end - start:.5f} sec")
+# print(f"{end - start:.5f} sec")
 sc.stop()
